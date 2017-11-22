@@ -37,19 +37,15 @@ Crie uma trigger que não permita a inserção/alteração do registro com base 
 
 
 6) Otimize a consulta do item 4, detalhando as analises do plano de execução inicial e a cada modificação, e utilizando hints caso o banco de dados suportar;
-EXPLAIN SELECT ...
-(https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html)
-
+ 
 10) Crie uma package que armazene as informações do usuário logado, e que registre as operações que o mesmo realizou na sessão;
 
 13) Realize a carga de pelo menos 500.000 registros, utilizando bulk operations, gerando a massa de dados através do cross join entre algumas tabelas do modelo do criado no item 1, utilizando o tipo de dados criado no item 12;
-(https://dev.mysql.com/doc/refman/5.6/en/optimizing-innodb-bulk-data-loading.html)
-
+ 
 14) Crie uma tabela utilizando particionamento de dados, e explique no DDL a motivação e beneficios do particionamento realizado;
 
 15) Utilize paralelismo para otimizar a criação de um indice na tabela criada no item 13;
-(http://www.oraclehome.com.br/2012/05/07/execucao-paralela-de-instrucoes-sql-parallel-query-dml-e-ddl/)
-
+ 
 ----------------------------------------------------
 ----------------------------------------------------
 -- Criar o banco versão utilizada MySQL 5.7.12
@@ -579,8 +575,13 @@ DELIMITER ;
 -- /FIM VIEW JOB PROCEDURE 
 -------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
--- Function validar email do cliente (expressão regular)
 
+
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+                            -- [EXERCÍCIO 08] -- 
+---------------------------------------------------------------------------------   
+-- Function validar email do cliente (expressão regular)
 drop function valida_email;
 
 DELIMITER $$
@@ -631,13 +632,18 @@ DELIMITER ;
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
--- pergunta [06]
-
-
+                            -- [EXERCÍCIO 06] -- 
+---------------------------------------------------------------------------------                            
+                            
+                            
+                            
+                            
+                            
+                            
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
--- pergunta [07]
-
+                            -- [EXERCÍCIO 07 ] --
+---------------------------------------------------------------------------------
   -- create view
   
 CREATE VIEW view_produtos_vendas 
@@ -696,10 +702,21 @@ BEGIN
 
 END;;
 DELIMITER ;
-    
+
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
- -- pergunta [11] 
+                            -- [EXERCÍCIO 10 ] --
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+                            -- [EXERCÍCIO 11 ] --
+---------------------------------------------------------------------------------
  
  SELECT    vendedores.nome     ' VENDEDOR   ', 
            vendas.id           ' COD. VENDA ',
@@ -720,20 +737,30 @@ DELIMITER ;
       AND  comissoes.venda_id = vendas.id
       AND  vendedores.id      = vendas.vendedor_id
  ORDER BY  1; 
- 
--- pergunta [12]
 
--- Como o MySQL não suporta a criação de tipos de dados, eu fiz esse exercicio inserindo um campo do tipo JSON para armazenar os telefones de um cliente. Também criei uma tabela para inserir os tipos de telefones permitidos serem enseridos nesse campo.
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+                            -- [EXERCÍCIO 12 ] --
+---------------------------------------------------------------------------------
 
-alter table clientes add telefone json DEFAULT NULL;
+  -- Como o MySQL não suporta a criação de tipos de dados, eu fiz esse exercicio inserindo um campo do tipo JSON para armazenar os telefones de um cliente. Também criei uma tabela para inserir os tipos de telefones permitidos serem enseridos nesse campo.
 
-alter table clientes add telefonelocais varchar(40) GENERATED ALWAYS AS (json_keys(telefone)) STORED;
+  -- campo que irá armazenar os telefones
+  
+ALTER TABLE clientes ADD telefone json DEFAULT NULL;
 
+  -- campo que irá guardar o tipo dos telefone adicionados no campo telefone 
+  
+ALTER TABLE clientes ADD telefonelocais varchar(40) GENERATED ALWAYS AS (json_keys(telefone)) STORED;
+
+  -- tabela para armazenar os tipos de locais do telefone permitidos inserir no campo telefone
+  
 CREATE TABLE locaistelefone (
   listalocais varchar(40) NOT NULL,
   PRIMARY KEY (listalocais)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
   
+  -- inserts para popular a tabela dos tipos permitidos de locais de telefones  
 insert into locaistelefone
 values('["celular", "residencia"]');
 insert into locaistelefone
@@ -750,13 +777,13 @@ insert into locaistelefone
 values('["trabalho"]');
 
 
-alter table clientes add foreign key (telefonelocais) references locaistelefone (listalocais);
-
-
+  -- Foreign Key na coluna 'telefonelocais' para restrigir os tipos de locais
+ALTER TABLE clientes ADD FOREIGN KEY (telefonelocais) REFERENCES locaistelefone (listalocais);
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
--- pergunta [13]
+                            -- [EXERCÍCIO 13 ] --
+---------------------------------------------------------------------------------
 
 -- cross joins para trazer todos os 'ids' das vendas de um cliente
 
@@ -770,8 +797,11 @@ SET autocommit=0;
 COMMIT;
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
--- pergunta [14]
+                            -- [EXERCÍCIO 14 ] --
+---------------------------------------------------------------------------------
 
 
 ---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+                            -- [EXERCÍCIO 15 ] --
 ---------------------------------------------------------------------------------
