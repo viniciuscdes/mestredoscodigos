@@ -50,10 +50,45 @@ EXPLAIN SELECT ...
 
 **[015]** Utilize paralelismo para otimizar a criação de um indice na tabela criada no item 13;
  
-----------------------------------------------------
-----------------------------------------------------
--- Criar o banco versão utilizada MySQL 5.7.12
-----------------------------------------------------
-----------------------------------------------------
 
-CREATE DATABASE mestrecodigos;
+-- 
+
+## Para testar os exercícios
+
+
+Foi utilizado no desenvolvimento dos exercícios o banco de dados [**MySQL 5.7.12**](https://dev.mysql.com/downloads/mysql/).
+
+### Criar o banco de dados
+
+
+```shell
+
+$> CREATE DATABASE mestrecodigos;
+
+```
+
+### Tabelas
+
+
+A criação das tabelas pode ser feito através das seguintes opções:
+
+
+- Arquivo que contém todos scripts do projeto: [**mestredocodigo.sql**](https://github.com/viniciuscdes/mestredoscodigos/blob/master/mestresdocodigo.sql).
+- Arquivo que contém os scripts de criação das tabelas: [**create_table.sql**](https://www.github.com/viniciuscdes/mestredoscodigos/blob/master/create_table.sql). 
+- Arquivo com o backup completo do banco: [**backup_completo_registros.sql**](https://www.git...)
+
+
+### Popular o banco
+
+Para realizar os testes é possivel utilizar os scripts do arquivo: [**popula_inicial.sql**](https://www.git...). 
+Ou também pode utilizar o backup do banco completo com os registros [**backup_completo_registros.sql**](https://www.git...)
+
+
+### Quer aprender SQL?
+
+![Casa do Código](https://cdn.shopify.com/s/files/1/0155/7645/t/227/assets/logo-footer.svg?11400518399597191348) Confira meus livros sobre MySQL e PostgreSQL na Editora [Casa do Código](https://www.casadocodigo.com.br/). 
+
+- [MySQL : Comece com o principal banco de dados open source do mercado](https://www.casadocodigo.com.br/products/livro-banco-mysql)
+
+- [PostgreSQL : Banco de dados para aplicações web modernas](https://www.casadocodigo.com.br/products/livro-postgresql)
+
