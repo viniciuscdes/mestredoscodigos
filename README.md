@@ -5,9 +5,9 @@
 
 | Entregas | Exercícios     |
 |-- | -- |
-| Entrega I  | 1, 2, 3, 4, 5, 8, 9          |
-| Entrega II | 6, 7, 10, 11, 12, 13, 14, 15 |
-
+| Entrega I   | 1, 2, 3, 4, 5, 8, 9 |
+| Entrega II  | 7, 11, 12           |
+| Entrega III | 6, 10, 13, 14, 15   |
 
 # Exercícios 
 
@@ -29,12 +29,13 @@ Crie uma trigger que não permita a inserção/alteração do registro com base 
 
 ---
 
+
+**[07]** Criar um trigger que, ao realizar um INSERT em uma view composta por pelo menos 3 tabelas, realize inserção em uma outra tabela dentro do banco de dados;
   
 **[011]** Crie uma query analítica extraindo informações relevantes dentro modelo do criado no item 1;
 
 **[012]** Crie um tipo de dado, composto por pelo menos 2 atributos, e crie o DDL que altere o modelo de dados do item 1 para utiliza-lo;
 
-**[07]** Criar um trigger que, ao realizar um INSERT em uma view composta por pelo menos 3 tabelas, realize inserção em uma outra tabela dentro do banco de dados;
 
 ---
 

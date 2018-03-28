@@ -24,28 +24,34 @@ Crie uma trigger que não permita a inserção/alteração do registro com base 
 ----------------------------------------------------
 ----------------------------------------------------
 
-  -- [ENTREGA II]
+-- [ENTREGA II]
   
+7) Criar um trigger que, ao realizar um INSERT em uma view composta por pelo menos 3 tabelas, realize inserção em uma outra tabela dentro do banco de dados; 
+
 11) Crie uma query analítica extraindo informações relevantes dentro modelo do criado no item 1;
 
 12) Crie um tipo de dado, composto por pelo menos 2 atributos, e crie o DDL que altere o modelo de dados do item 1 para utiliza-lo;
 
-7) Criar um trigger que, ao realizar um INSERT em uma view composta por pelo menos 3 tabelas, realize inserção em uma outra tabela dentro do banco de dados;
 
 ----------------------------------------------------
 ----------------------------------------------------
+
+-- [ENTREGA III]
 
 
 6) Otimize a consulta do item 4, detalhando as analises do plano de execução inicial e a cada modificação, e utilizando hints caso o banco de dados suportar;
- 
+
 10) Crie uma package que armazene as informações do usuário logado, e que registre as operações que o mesmo realizou na sessão;
 
 13) Realize a carga de pelo menos 500.000 registros, utilizando bulk operations, gerando a massa de dados através do cross join entre algumas tabelas do modelo do criado no item 1, utilizando o tipo de dados criado no item 12;
- 
+
 14) Crie uma tabela utilizando particionamento de dados, e explique no DDL a motivação e beneficios do particionamento realizado;
 
 15) Utilize paralelismo para otimizar a criação de um indice na tabela criada no item 13;
- 
+
+----------------------------------------------------
+----------------------------------------------------
+
 ----------------------------------------------------
 ----------------------------------------------------
 -- Criar o banco versão utilizada MySQL 5.7.12
@@ -488,8 +494,153 @@ INNER JOIN vendedores g
         ON g.id = v.gerente_id
   ORDER BY g.nome; 
  
- ---------------------------------------------------------------------------------
- ---------------------------------------------------------------------------------
+ 
+
+
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+                            -- [EXERCÍCIO 06] -- 
+--------------------------------------------------------------------------------- 
+                        
+  EXPLAIN SELECT /*+ MAX_EXECUTION_TIME(1000) */
+          vendedores.nome         'VENDEDOR  ', 
+          COUNT(vendas.id)        'QUANTIDADE DE VENDAS',
+		  SUM(vendas.valor_venda) 'TOTAL R$ VENDAS', 
+          vendedores.comissao     'COMISSAO %', 
+		  
+		  SUM(valor_comissao)     'COMISSÃO TOTAL', 
+		  AVG(vendas.valor_venda) 'TOTAL R$ MÉDIO DAS VENDAS',
+		  MAX(vendas.valor_venda) 'MAIOR VENDA',
+		  MIN(vendas.valor_venda) 'MENOR VENDA'
+     FROM vendedores, comissoes, vendas
+    WHERE vendedores.id      = comissoes.vendedor_id
+      AND comissoes.venda_id = vendas.id
+      AND vendedores.id      = vendas.vendedor_id
+ GROUP BY comissoes.vendedor_id
+ ORDER BY 1;                          
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+                            -- [EXERCÍCIO 07 ] --
+---------------------------------------------------------------------------------
+  -- create view
+  
+CREATE VIEW view_produtos_vendas 
+    AS (SELECT vendas.valor_venda 'valor_venda',
+               produtos.descricao 'produto',
+               fornecedores.razao_social 'fornecedor',
+               produtos.tipo_produto_id 'tipo_produto'
+          FROM produtos, vendas, itens_vendas, fornecedores, tipo_produtos
+         WHERE vendas.id = itens_vendas.venda_id
+           AND produtos.id = itens_vendas.produto_id
+           AND itens_vendas.fornecedor_id = fornecedores.id
+           AND produtos.tipo_produto_id = tipo_produtos.id);
+  
+  
+  -- create insert na view
+
+    
+    INSERT INTO view_produtos_vendas(produto, tipo_produto)
+     VALUES ('Novo Produto', 2);
+      
+  
+  -- create trigger
+    -- a cada novo produto inserido na tabela produtos, é inserido o mesmo produto para todos os fornecedores na tabela 'produtos_fornecedores' 
+DELIMITER ;;  
+CREATE TRIGGER produtos_vendas_ai 
+AFTER INSERT ON produtos FOR EACH ROW
+BEGIN
+
+  DECLARE done         INT DEFAULT FALSE;
+  DECLARE idnewproduto INT default 0;
+  DECLARE idfornecedor INT default 0;
+  
+  DECLARE busca_fornecedor cursor for 
+   SELECT id
+     FROM fornecedores;
+  
+  DECLARE CONTINUE HANDLER FOR NOT found SET done = TRUE;     
+  
+  SET idnewproduto = new.id;
+  
+   OPEN busca_fornecedor;
+   
+     fornecedor: LOOP
+     
+      FETCH busca_fornecedor INTO idfornecedor;
+      
+         IF done THEN
+      LEAVE fornecedor;
+	 END IF;
+     
+     INSERT INTO produtos_fornecedores (produto_id, fornecedor_id, valor, data_vigente)
+          VALUES (idnewproduto, idfornecedor, 0, now() );
+     
+     END LOOP fornecedor;
+        CLOSE busca_fornecedor;
+
+END;;
+DELIMITER ;
+
+
+
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+                            -- [EXERCÍCIO 08] -- 
+---------------------------------------------------------------------------------   
+-- Function validar email do cliente (expressão regular)
+drop function valida_email;
+
+DELIMITER $$
+CREATE FUNCTION valida_email(email VARCHAR(100))
+  RETURNS VARCHAR(1)
+BEGIN
+  DECLARE validacao VARCHAR(1);
+  
+  SELECT email NOT REGEXP '^[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$' INTO validacao; 
+
+  RETURN validacao;
+   
+END;
+$$
+DELIMITER ;
+
+-- Trigger para validar o email no insert 
+DELIMITER ;;
+CREATE  TRIGGER tri_clientes_bi  
+BEFORE INSERT ON  clientes  FOR EACH ROW
+BEGIN
+   DECLARE msg_erro VARCHAR(255);
+   
+   IF (NEW.email IS NOT NULL) and (valida_email(NEW.email) = '1') THEN
+	 SET msg_erro = "FORMATO DO EMAIL INCORRETO";
+	 SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_erro;
+   END IF;
+    
+   SET NEW.data_criacao = now();
+END;;
+DELIMITER ;
+
+-- Trigger para validar o email no update 
+DELIMITER ;;
+CREATE TRIGGER tri_clientes_bu 
+BEFORE UPDATE ON  clientes  FOR EACH ROW
+BEGIN
+   DECLARE msg_erro VARCHAR(255);
+   
+   IF (NEW.email IS NOT NULL) and (valida_email(NEW.email) = '1') THEN
+	 SET msg_erro = "FORMATO DO EMAIL INCORRETO";
+	 SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_erro;
+   END IF;
+    
+   SET NEW.ultima_alteracao = now(); 
+END;;
+DELIMITER ;
+
+
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+                            -- [EXERCÍCIO 09 ] --
+---------------------------------------------------------------------------------
 -- INICIO VIEW JOB PROCEDURE 
 -- view materializada
 -- Uma solução para view materializada no mysql 
@@ -576,148 +727,46 @@ DELIMITER ;
 -------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-
----------------------------------------------------------------------------------
----------------------------------------------------------------------------------
-                            -- [EXERCÍCIO 08] -- 
----------------------------------------------------------------------------------   
--- Function validar email do cliente (expressão regular)
-drop function valida_email;
-
-DELIMITER $$
-CREATE FUNCTION valida_email(email VARCHAR(100))
-  RETURNS VARCHAR(1)
-BEGIN
-  DECLARE validacao VARCHAR(1);
-  
-  SELECT email NOT REGEXP '^[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$' INTO validacao; 
-
-  RETURN validacao;
-   
-END;
-$$
-DELIMITER ;
-
--- Trigger para validar o email no insert 
-DELIMITER ;;
-CREATE  TRIGGER tri_clientes_bi  
-BEFORE INSERT ON  clientes  FOR EACH ROW
-BEGIN
-   DECLARE msg_erro VARCHAR(255);
-   
-   IF (NEW.email IS NOT NULL) and (valida_email(NEW.email) = '1') THEN
-	 SET msg_erro = "FORMATO DO EMAIL INCORRETO";
-	 SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_erro;
-   END IF;
-    
-   SET NEW.data_criacao = now();
-END;;
-DELIMITER ;
-
--- Trigger para validar o email no update 
-DELIMITER ;;
-CREATE TRIGGER tri_clientes_bu 
-BEFORE UPDATE ON  clientes  FOR EACH ROW
-BEGIN
-   DECLARE msg_erro VARCHAR(255);
-   
-   IF (NEW.email IS NOT NULL) and (valida_email(NEW.email) = '1') THEN
-	 SET msg_erro = "FORMATO DO EMAIL INCORRETO";
-	 SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg_erro;
-   END IF;
-    
-   SET NEW.ultima_alteracao = now(); 
-END;;
-DELIMITER ;
-
----------------------------------------------------------------------------------
----------------------------------------------------------------------------------
-                            -- [EXERCÍCIO 06] -- 
---------------------------------------------------------------------------------- 
-CREATE USER 'mestrecodigos'@'localhost' IDENTIFIED BY 'senhas';
-
-  grant all on *.* to mestrecodigos@localhost;
-  SET GLOBAL general_log = 'ON';
-    SET GLOBAL slow_query_log = 'ON';
-SET GLOBAL sql_log_off = 'ON';
-SET GLOBAL log_output = 'TABLE';
-                            
-                            
-                            
-@@session.sql_log_bin                            
-                            
-                            
-                            
----------------------------------------------------------------------------------
----------------------------------------------------------------------------------
-                            -- [EXERCÍCIO 07 ] --
----------------------------------------------------------------------------------
-  -- create view
-  
-CREATE VIEW view_produtos_vendas 
-    AS (SELECT vendas.valor_venda 'valor_venda',
-               produtos.descricao 'produto',
-               fornecedores.razao_social 'fornecedor',
-               produtos.tipo_produto_id 'tipo_produto'
-          FROM produtos, vendas, itens_vendas, fornecedores, tipo_produtos
-         WHERE vendas.id = itens_vendas.venda_id
-           AND produtos.id = itens_vendas.produto_id
-           AND itens_vendas.fornecedor_id = fornecedores.id
-           AND produtos.tipo_produto_id = tipo_produtos.id);
-  
-  
-  -- create insert na view
-
-    
-    INSERT INTO view_produtos_vendas(produto, tipo_produto)
-     VALUES ('Novo Produto', 2);
-      
-  
-  -- create trigger
-    -- a cada novo produto inserido na tabela produtos, é inserido o mesmo produto para todos os fornecedores na tabela 'produtos_fornecedores' 
-DELIMITER ;;  
-CREATE TRIGGER produtos_vendas_ai 
-AFTER INSERT ON produtos FOR EACH ROW
-BEGIN
-
-  DECLARE done         INT DEFAULT FALSE;
-  DECLARE idnewproduto INT default 0;
-  DECLARE idfornecedor INT default 0;
-  
-  DECLARE busca_fornecedor cursor for 
-   SELECT id
-     FROM fornecedores;
-  
-  DECLARE CONTINUE HANDLER FOR NOT found SET done = TRUE;     
-  
-  SET idnewproduto = new.id;
-  
-   OPEN busca_fornecedor;
-   
-     fornecedor: LOOP
-     
-      FETCH busca_fornecedor INTO idfornecedor;
-      
-         IF done THEN
-      LEAVE fornecedor;
-	 END IF;
-     
-     INSERT INTO produtos_fornecedores (produto_id, fornecedor_id, valor, data_vigente)
-          VALUES (idnewproduto, idfornecedor, 0, now() );
-     
-     END LOOP fornecedor;
-        CLOSE busca_fornecedor;
-
-END;;
-DELIMITER ;
-
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
                             -- [EXERCÍCIO 10 ] --
----------------------------------------------------------------------------------
+--------------------------------------------------------------------------------- 
+-- Os logs são armazenados na tabela padão do MySQL "mysql.general_log".
+--
+
+-- Habilitando o log automático
+SET GLOBAL general_log = 1;
+
+-- Habilitar log nas tabelas
+SET GLOBAL log_output  = 'table';
 
 
 
+-- select para consultar o usuário
+SELECT USER(),CURRENT_USER();
+
+
+-- select para consultar o log
+SELECT 
+    *  
+FROM 
+    mysql.general_log
+WHERE   argument  NOT LIKE '%localhost%' 
+    and argument  NOT LIKE '%SET NAMES%' 
+    and argument  NOT LIKE '%mysql%'
+    and argument  NOT LIKE '%SHOW%' 
+    and argument  NOT LIKE '%EVENT_SCHEMA%' 
+    and argument  NOT LIKE '%SET%' 
+    and argument  NOT LIKE 'SELECT current_user()'
+    AND argument  NOT LIKE 'set autocommit=1'
+	AND argument  NOT LIKE '%USE%'
+    AND argument  NOT LIKE 'SET SQL_SAFE_UPDATES=1'
+    AND argument  NOT LIKE 'SELECT CONNECTION_ID()'   
+    AND argument  NOT LIKE 'SET CHARACTER SET utf8'  
+    AND argument  NOT LIKE 'SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ'
+    and argument  <>  ''
+
+	
 
 
 
@@ -755,11 +804,14 @@ DELIMITER ;
 
   -- campo que irá armazenar os telefones
   
-ALTER TABLE clientes ADD telefone json DEFAULT NULL;
+ALTER TABLE clientes 
+        ADD telefone json DEFAULT NULL;
 
   -- campo que irá guardar o tipo dos telefone adicionados no campo telefone 
   
-ALTER TABLE clientes ADD telefonelocais varchar(40) GENERATED ALWAYS AS (json_keys(telefone)) STORED;
+ALTER TABLE clientes 
+        ADD telefonelocais varchar(40) GENERATED ALWAYS 
+         AS (json_keys(telefone)) STORED;
 
   -- tabela para armazenar os tipos de locais do telefone permitidos inserir no campo telefone
   
@@ -786,37 +838,95 @@ values('["trabalho"]');
 
 
   -- Foreign Key na coluna 'telefonelocais' para restrigir os tipos de locais
-ALTER TABLE clientes ADD FOREIGN KEY (telefonelocais) REFERENCES locaistelefone (listalocais);
+ALTER TABLE clientes 
+        ADD FOREIGN KEY (telefonelocais) 
+            REFERENCES locaistelefone (listalocais);
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
                             -- [EXERCÍCIO 13 ] --
 ---------------------------------------------------------------------------------
 
--- cross joins para trazer todos os 'ids' das vendas de um cliente
 SET autocommit=0;
-SET foreign_key_checks=0;
 
+CREATE TABLE tabela_cross_join AS (
+	SELECT clientes.razao_social, 
+		   clientes.telefone, 
+		   telefonelocais, 
+		   valor_venda,  
+		   valor_unitario, 
+		   produtos.descricao
+	  FROM clientes 
+	 CROSS JOIN (locaistelefone) 
+	 CROSS JOIN (vendas)
+	 CROSS JOIN (itens_vendas)
+	 CROSS JOIN (produtos)  
+	 CROSS JOIN (tipo_produtos)
+	 CROSS JOIN (vendedores)
+	 CROSS JOIN (fornecedores)
+	 CROSS JOIN (produtos_fornecedores)
+	 ORDER BY RAND()
+ LIMIT 500000 );
+ 
+ COMMIT;
 
-SET foreign_key_checks=1;
-COMMIT;
-
-
-    SELECT c.razao_social,
-           v.id
-      FROM clientes AS c
-CROSS JOIN vendas   AS v;
-
-SET autocommit=0;
-    
-COMMIT;
+SET autocommit=1;
+ 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
                             -- [EXERCÍCIO 14 ] --
 ---------------------------------------------------------------------------------
+-- Quando você tem uma tabela com muitos registros no MySQL, as buscas podem se
+--  tornar extremamente lentas. Uma forma de otimizar a velocidade de suas  
+--  buscas pode ser particionar a tabela.
+-- Quando uma tabela é particionada, é como se você tivesse várias tabelinhas 
+-- menores que, juntas, compõem a tabela completa.
 
+-- Tabela que separa a logistica por região 
+
+CREATE TABLE logistica (
+  id                 INT(11)      NOT NULL AUTO_INCREMENT,
+  razao_social       VARCHAR(255) NOT NULL,
+  email              VARCHAR(255) DEFAULT NULL,
+  contato            VARCHAR(255) DEFAULT NULL,
+  regiao_atendimento VARCHAR(2)   NOT NULL,
+  KEY UK_ID (id)
+)
+PARTITION BY LIST  COLUMNS(regiao_atendimento) 
+(PARTITION regiao_sul VALUES IN ('RS','SC','PR') ,
+ PARTITION regiao_sudeste VALUES IN ('SP','RG','MG','ES') ,
+ PARTITION regiao_centro_oeste VALUES IN ('MT','MS','GO','DF'),
+ PARTITION regiao_norte VALUES IN ('AC','AM','RO','RR','PA','AP','TO') ,
+ PARTITION regiao_nordeste VALUES IN ('MA','PI','CE','RN','PB','PE','AL','SE','BA') );
+
+INSERT INTO logistica
+VALUES(1, 'LOGISTICA LONDRINA LTDA', 'contato@logldn.com.br', 'Bruna', 'PR');
+INSERT INTO logistica
+VALUES(2, 'LOGISTICA CURITIBA LTDA', 'contato@logctb.com.br', 'Vitória', 'PR');
+INSERT INTO logistica
+VALUES(3, 'LOGISTICA MARINGÁ LTDA', 'contato@logmga.com.br', 'Cicinho', 'PR');
+INSERT INTO logistica
+VALUES(4, 'LOGISTICA FLORIANÓPOLIS LTDA', 'contato@logfrp.com.br', 'Daniel', 'SC');
+INSERT INTO logistica
+VALUES(5, 'LOGISTICA SÃO PAULO LTDA', 'contato@logsp.com.br', 'Thomas', 'SP');
+INSERT INTO logistica
+VALUES(6, 'LOGISTICA BELÉM LTDA', 'contato@logpa.com.br', '', 'PA');
+INSERT INTO logistica
+VALUES(7, 'LOGISTICA RIO DE JANEIRO LTDA', 'contato@logrj.com.br', '', 'RJ');
+INSERT INTO logistica
+VALUES(8, 'LOGISTICA SALVADOR LTDA', 'contato@logba.com.br', 'Hector', 'BA');
+ 
+	SELECT count(*) FROM logistica WHERE regiao_atendimento in ('PR','SC','SP');
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
                             -- [EXERCÍCIO 15 ] --
 ---------------------------------------------------------------------------------
+
+-- não da para fazer esse paralelismo somente com o mysql 
+-- uma alteranativa seria utilizar o lock para otimizar a criação de indice
+
+LOCK TABLE tabela_cross_join WRITE;
+ALTER TABLE tabela_cross_join ADD INDEX (valor_unitario, descricao);
+UNLOCK TABLE;
+

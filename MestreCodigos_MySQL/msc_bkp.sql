@@ -37,15 +37,19 @@ Crie uma trigger que não permita a inserção/alteração do registro com base 
 
 
 6) Otimize a consulta do item 4, detalhando as analises do plano de execução inicial e a cada modificação, e utilizando hints caso o banco de dados suportar;
- 
+EXPLAIN SELECT ...
+(https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html)
+
 10) Crie uma package que armazene as informações do usuário logado, e que registre as operações que o mesmo realizou na sessão;
 
 13) Realize a carga de pelo menos 500.000 registros, utilizando bulk operations, gerando a massa de dados através do cross join entre algumas tabelas do modelo do criado no item 1, utilizando o tipo de dados criado no item 12;
- 
+(https://dev.mysql.com/doc/refman/5.6/en/optimizing-innodb-bulk-data-loading.html)
+
 14) Crie uma tabela utilizando particionamento de dados, e explique no DDL a motivação e beneficios do particionamento realizado;
 
 15) Utilize paralelismo para otimizar a criação de um indice na tabela criada no item 13;
- 
+(http://www.oraclehome.com.br/2012/05/07/execucao-paralela-de-instrucoes-sql-parallel-query-dml-e-ddl/)
+
 ----------------------------------------------------
 ----------------------------------------------------
 -- Criar o banco versão utilizada MySQL 5.7.12
@@ -633,18 +637,10 @@ DELIMITER ;
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
                             -- [EXERCÍCIO 06] -- 
---------------------------------------------------------------------------------- 
-CREATE USER 'mestrecodigos'@'localhost' IDENTIFIED BY 'senhas';
-
-  grant all on *.* to mestrecodigos@localhost;
-  SET GLOBAL general_log = 'ON';
-    SET GLOBAL slow_query_log = 'ON';
-SET GLOBAL sql_log_off = 'ON';
-SET GLOBAL log_output = 'TABLE';
+---------------------------------------------------------------------------------                            
                             
                             
                             
-@@session.sql_log_bin                            
                             
                             
                             
@@ -794,13 +790,6 @@ ALTER TABLE clientes ADD FOREIGN KEY (telefonelocais) REFERENCES locaistelefone 
 ---------------------------------------------------------------------------------
 
 -- cross joins para trazer todos os 'ids' das vendas de um cliente
-SET autocommit=0;
-SET foreign_key_checks=0;
-
-
-SET foreign_key_checks=1;
-COMMIT;
-
 
     SELECT c.razao_social,
            v.id
