@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2018/10/24 14:59:16.000.734,=C:\Users\vinicius.souza\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2018/10/24 15:01:10.000.383,C:\Users\vinicius.souza\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\HDDB1\MestreCodigos\Uprincipal.pas</Transaction>
+    <Transaction>2018/10/24 15:01:10.000.383,C:\Users\vinicius.souza\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\HDDB1\MestreCodigos\Uprincipal.dfm</Transaction>
+    <Transaction>2018/10/24 15:14:59.000.534,=C:\Users\vinicius.souza\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2018/10/24 15:15:11.000.460,C:\Users\vinicius.souza\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\HDDB1\MestreCodigos\Upessoa.pas</Transaction>
+    <Transaction>2018/10/24 15:16:02.000.568,=C:\Users\vinicius.souza\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2018/10/24 15:18:40.000.206,C:\Users\vinicius.souza\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\HDDB1\MestreCodigos\DelphiMestreCodigos.dproj</Transaction>
+    <Transaction>2018/10/24 15:18:48.000.290,=C:\HDDB1\MestreCodigos\Unit2.pas</Transaction>
+    <Transaction>2018/10/24 15:18:52.000.187,C:\HDDB1\MestreCodigos\Unit2.dfm=C:\HDDB1\MestreCodigos\Upessoa.dfm</Transaction>
+    <Transaction>2018/10/24 15:18:52.000.187,C:\HDDB1\MestreCodigos\Unit2.pas=C:\HDDB1\MestreCodigos\Upessoa.pas</Transaction>
+  </Transactions>
+</BorlandProject>
