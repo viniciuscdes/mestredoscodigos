@@ -8,14 +8,13 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
   FireDAC.VCLUI.Wait, Data.DB, FireDAC.Comp.Client, Upessoa, FireDAC.Phys.MySQL,
-  FireDAC.Phys.MySQLDef;
+  FireDAC.Phys.MySQLDef, Data.DBXMySQL, Data.SqlExpr, Uconfig;
 
 type
   TForm1 = class(TForm)
     MainMenu1: TMainMenu;
     Menu1: TMenuItem;
     Pessoas1: TMenuItem;
-    FDConnection1: TFDConnection;
     procedure Pessoas1Click(Sender: TObject);
   private
     { Private declarations }

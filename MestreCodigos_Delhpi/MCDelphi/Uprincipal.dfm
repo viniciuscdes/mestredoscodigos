@@ -12,6 +12,7 @@ object Form1: TForm1
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = False
+  WindowState = wsMaximized
   PixelsPerInch = 96
   TextHeight = 13
   object MainMenu1: TMainMenu
@@ -24,14 +25,5 @@ object Form1: TForm1
         OnClick = Pessoas1Click
       end
     end
-  end
-  object FDConnection1: TFDConnection
-    Params.Strings = (
-      'Database=mc_delphi'
-      'User_Name=root'
-      'Password=senha'
-      'DriverID=MySQL')
-    Left = 344
-    Top = 240
   end
 end
